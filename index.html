@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSP Conversion Table</title>
+	<style>
+		body {
+			font-family: arial, sans-serif;
+			padding: 20px;
+		}
+	
+		table {
+			border-collapse: collapse;
+			/*width: 100%;*/
+		}
+		
+		td, th {
+			border: 1px solid #dddddd;
+			text-align: left;
+			padding: 8px;
+		}
+		
+		tr:nth-child(even) {
+			background-color: #dddddd;
+		}
+	</style>
+  </head>
+  <body>
+	
+	<h1>DSP Conversion Table</h1>
+	<hr>
+	<p>Sample rate:</p>
+	<input type="text" id="sampleRateInput" value="44100" oninput="updateValues(sampleRateInput)">
+	<br><br>
+	<table>
+		<tr>
+			<td><b>Units</b></td>
+			<td><b>Value</b></td>
+		</tr>
+		</tr>
+			<td>Sample time (samples)</td>
+			<td><input type="text" id="sampleTimeInput" oninput="updateValues(sampleTimeInput)"></td>
+		</tr>
+		</tr>
+			<td>12-TET Pitch (note)</td>
+			<td><input type="text" id="pitchInput" oninput="updateValues(pitchInput)"></td>
+		</tr>
+		</tr>
+			<td>Frequency (hz)</td>
+			<td><input type="text" id="freqInput" value="440" oninput="updateValues(freqInput)"></td>
+		</tr>
+		</tr>
+			<td>Period (ms)</td>
+			<td><input type="text" id="periodInput" oninput="updateValues(periodInput)"></td>
+		</tr>
+	</table>
+	
+	<script>
+		"use strict";
+	
+		let sampleRateInput = document.getElementById("sampleRateInput");
+		let sampleTimeInput = document.getElementById("sampleTimeInput");
+		let pitchInput      = document.getElementById("pitchInput");
+		let freqInput       = document.getElementById("freqInput");
+		let periodInput     = document.getElementById("periodInput");
+		
+		function getSampleRate(){
+			return sampleRateInput.value;
+		}
+		
+		const tet12Note = {
+			noteValue: 0, //0 = A4, 440hz
+			offset: 0,	//in cents
+			
+			//letterOffsetsSharp: [0, 0, 1, 2, 2, 3, 3, 4, 5, 6, 6, 6],
+			letterOffsetsFlat: [0, 1, 1, 2, 3, 3, 4, 4, 5, 6, 6, 0],
+			accidentals:       [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1],
+			
+			toString: function(){
+				let octave = 5 + Math.floor((this.noteValue-3)/12);
+				
+				let pmodNodeValue = ((this.noteValue%12)+12)%12;
+				
+				let letter = String.fromCharCode(65+this.letterOffsetsFlat[pmodNodeValue]) + octave + ((this.accidentals[pmodNodeValue] === 1)?"b":"");
+				return `${letter} + ${this.offset} ${(this.offset == 1)?"cent":"cents"}`;
+			},
+			
+			setFromHz: function(hz){
+				let noteValue = Math.log(hz/440) / Math.log(Math.pow(2, 1/12.0));
+				
+				this.noteValue = Math.floor(noteValue);
+				this.offset = 100*(noteValue - this.noteValue); // x - floor(x) = mod(x,1)
+				
+				if(this.offset > 99.99){
+					this.offset = 0;
+					this.noteValue += 1;
+				}
+			},
+			
+			toHz: function(){
+				return 440*Math.pow(2, (this.noteValue+this.offset/100.0)/12.0);
+			},
+			
+			setFromString: function(pitch){
+				let trim = pitch.replace(/\s+/g, '');
+				
+				let letterValue = trim.charAt(0).charCodeAt(0) - 65;
+				let hasAccidental = trim.includes("b");
+				let octave = parseInt(trim.substr(1, trim.indexOf(hasAccidental?'b':'+')));
+				let endOfOffset = trim.includes("c")?trim.indexOf('c'):trim.length;
+				let offset = parseFloat(trim.substr(trim.indexOf(hasAccidental?'b':'+')+1, ));
+				
+				this.offset = offset;
+				
+				let noteValue = 0;
+				
+				for(let i = 0; i < this.letterOffsetsFlat.length; ++i){
+					if(this.letterOffsetsFlat[i] == letterValue && this.accidentals[i] == (hasAccidental?1:0))
+						noteValue = i;
+				}
+				
+				if(hasAccidental){
+					if(letterValue == 2){
+						noteValue = 2;
+						hasAccidental = false;
+					}
+					
+					if(letterValue == 5){
+						noteValue = 7;
+						hasAccidental = false;
+					}
+					
+					if(letterValue == 0)
+						octave -= 1;
+				}
+				
+				noteValue += 12 * (octave - 4);
+				
+				if(letterValue >= 2) noteValue -= 12;
+				
+				this.noteValue = noteValue;
+				
+				//console.log("noteV " + noteValue + " letterValue " + letterValue + " accid " + hasAccidental+ " oct " + octave);
+				
+			},
+			
+		};
+		
+		function pitchToHz(pitch){
+			tet12Note.setFromString(pitch);
+			return tet12Note.toHz();
+		}
+		
+		function hzToPitch(val){
+			tet12Note.setFromHz(val);
+			return tet12Note.toString();
+		}
+		
+		function inputConvert(element, toHz /*otherwise FROM hz*/){
+			let val = toHz ? element.value : freqInput.value;
+		
+			switch(element){
+			
+			case sampleTimeInput:
+				return toHz ? 1/(val/getSampleRate()) : getSampleRate()*(1/val);
+				break;
+				
+			case pitchInput:
+				return toHz ? pitchToHz(val) : hzToPitch(val);
+				break;
+			
+			case freqInput:
+				return val;
+				break;
+			
+			case periodInput:
+				return toHz ? 1000/val : 1000/val;
+				break;
+			}
+			
+		}
+	
+		function updateInput(element, updatedElement){
+			if(element != updatedElement)
+				element.value = inputConvert(element, false);
+		}
+	
+		function updateValues(element){
+			if(element != sampleRateInput)
+				freqInput.value = inputConvert(element, true);
+			
+			updateInput(sampleTimeInput, element);
+			updateInput(pitchInput, element);
+			updateInput(freqInput, element);
+			updateInput(periodInput, element);
+		}
+		
+		updateValues(freqInput); //initial update since hz is pre set to 440
+	
+	</script>
+	
+  </body>
+</html>
