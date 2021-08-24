@@ -30,9 +30,22 @@
 	
 	<h1>DSP Conversion Table</h1>
 	<hr>
-	<p>Sample rate:</p>
-	<input type="text" id="sampleRateInput" value="44100" oninput="updateValues(sampleRateInput)">
+	
+	<table>
+		<tr>
+			<td>
+				<p>Sample rate:</p>
+				<input type="text" id="sampleRateInput" value="44100" oninput="updateValues(sampleRateInput)">
+			</td>
+			<td>
+				<p>Speed of sound (m/s):</p>
+				<input type="text" id="soundSpeedInput" value="343" oninput="updateValues(soundSpeedInput)">
+			</td>
+		</tr>
+	</table>
+	
 	<br><br>
+	
 	<table>
 		<tr>
 			<td><b>Units</b></td>
@@ -58,6 +71,10 @@
 			<td>Sample time (samples)</td>
 			<td><input type="text" id="sampleTimeInput" oninput="updateValues(sampleTimeInput)"></td>
 		</tr>
+		</tr>
+			<td>Distance per Cycle (cm)</td>
+			<td><input type="text" id="distanceInput" oninput="updateValues(distanceInput)"></td>
+		</tr>
 	</table>
 	
 	<h4>Todo</h4>
@@ -69,15 +86,22 @@
 	<script>
 		"use strict";
 		
+		let sampleRateInput = document.getElementById("sampleRateInput");
+		let soundSpeedInput = document.getElementById("soundSpeedInput");
+		
 		let freqInput       = document.getElementById("freqInput");
 		let bpmInput        = document.getElementById("bpmInput");
-		let sampleRateInput = document.getElementById("sampleRateInput");
 		let sampleTimeInput = document.getElementById("sampleTimeInput");
 		let pitchInput      = document.getElementById("pitchInput");
 		let periodInput     = document.getElementById("periodInput");
+		let distanceInput   = document.getElementById("distanceInput");
 		
 		function getSampleRate(){
 			return sampleRateInput.value;
+		}
+		
+		function getSoundSpeed(){
+			return soundSpeedInput.value;
 		}
 		
 		const tet12Note = {
@@ -192,6 +216,10 @@
 			case sampleTimeInput:
 				return toHz ? 1/(val/getSampleRate()) : getSampleRate()*(1/val);
 				break;
+				
+			case distanceInput:
+				return toHz ?  (1/(val/(getSoundSpeed()*100.0)))/1000.0 : (100.0*getSoundSpeed())/(1000.0*val);
+				break;
 			}
 			
 		}
@@ -202,7 +230,7 @@
 		}
 	
 		function updateValues(element){
-			if(element != sampleRateInput)
+			if(element != sampleRateInput && element != soundSpeedInput)
 				freqInput.value = inputConvert(element, true);
 			
 			updateInput(freqInput, element);
@@ -210,6 +238,7 @@
 			updateInput(periodInput, element);
 			updateInput(pitchInput, element);
 			updateInput(sampleTimeInput, element);
+			updateInput(distanceInput, element);
 		}
 		
 		updateValues(freqInput); //initial update since hz is pre set to 440
