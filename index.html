@@ -39,14 +39,6 @@
 			<td><b>Value</b></td>
 		</tr>
 		</tr>
-			<td>Sample time (samples)</td>
-			<td><input type="text" id="sampleTimeInput" oninput="updateValues(sampleTimeInput)"></td>
-		</tr>
-		</tr>
-			<td>12-TET Pitch (note)</td>
-			<td><input type="text" id="pitchInput" oninput="updateValues(pitchInput)"></td>
-		</tr>
-		</tr>
 			<td>Frequency (hz)</td>
 			<td><input type="text" id="freqInput" value="440" oninput="updateValues(freqInput)"></td>
 		</tr>
@@ -54,15 +46,23 @@
 			<td>Period (ms)</td>
 			<td><input type="text" id="periodInput" oninput="updateValues(periodInput)"></td>
 		</tr>
+		</tr>
+			<td>12-TET Pitch (note)</td>
+			<td><input type="text" id="pitchInput" oninput="updateValues(pitchInput)"></td>
+		</tr>
+		</tr>
+			<td>Sample time (samples)</td>
+			<td><input type="text" id="sampleTimeInput" oninput="updateValues(sampleTimeInput)"></td>
+		</tr>
 	</table>
 	
 	<script>
 		"use strict";
-	
+		
+		let freqInput       = document.getElementById("freqInput");
 		let sampleRateInput = document.getElementById("sampleRateInput");
 		let sampleTimeInput = document.getElementById("sampleTimeInput");
 		let pitchInput      = document.getElementById("pitchInput");
-		let freqInput       = document.getElementById("freqInput");
 		let periodInput     = document.getElementById("periodInput");
 		
 		function getSampleRate(){
@@ -162,20 +162,20 @@
 		
 			switch(element){
 			
-			case sampleTimeInput:
-				return toHz ? 1/(val/getSampleRate()) : getSampleRate()*(1/val);
+			case freqInput:
+				return val;
+				break;
+				
+			case periodInput:
+				return toHz ? 1000/val : 1000/val;
 				break;
 				
 			case pitchInput:
 				return toHz ? pitchToHz(val) : hzToPitch(val);
 				break;
 			
-			case freqInput:
-				return val;
-				break;
-			
-			case periodInput:
-				return toHz ? 1000/val : 1000/val;
+			case sampleTimeInput:
+				return toHz ? 1/(val/getSampleRate()) : getSampleRate()*(1/val);
 				break;
 			}
 			
@@ -190,10 +190,10 @@
 			if(element != sampleRateInput)
 				freqInput.value = inputConvert(element, true);
 			
-			updateInput(sampleTimeInput, element);
-			updateInput(pitchInput, element);
 			updateInput(freqInput, element);
 			updateInput(periodInput, element);
+			updateInput(pitchInput, element);
+			updateInput(sampleTimeInput, element);
 		}
 		
 		updateValues(freqInput); //initial update since hz is pre set to 440
