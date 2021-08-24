@@ -43,6 +43,10 @@
 			<td><input type="text" id="freqInput" value="440" oninput="updateValues(freqInput)"></td>
 		</tr>
 		</tr>
+			<td>Frequency (BPM)</td>
+			<td><input type="text" id="bpmInput" oninput="updateValues(bpmInput)"></td>
+		</tr>
+		</tr>
 			<td>Period (ms)</td>
 			<td><input type="text" id="periodInput" oninput="updateValues(periodInput)"></td>
 		</tr>
@@ -56,10 +60,17 @@
 		</tr>
 	</table>
 	
+	<h4>Todo</h4>
+	<ul>
+	<li>More units</li>
+	<li>Group units into categories (musical, dsp, distance, etc)</li>
+	</ul>
+	
 	<script>
 		"use strict";
 		
 		let freqInput       = document.getElementById("freqInput");
+		let bpmInput        = document.getElementById("bpmInput");
 		let sampleRateInput = document.getElementById("sampleRateInput");
 		let sampleTimeInput = document.getElementById("sampleTimeInput");
 		let pitchInput      = document.getElementById("pitchInput");
@@ -166,6 +177,10 @@
 				return val;
 				break;
 				
+			case bpmInput:
+				return toHz ? val/60.0 : val*60.0;
+				break;
+				
 			case periodInput:
 				return toHz ? 1000/val : 1000/val;
 				break;
@@ -191,6 +206,7 @@
 				freqInput.value = inputConvert(element, true);
 			
 			updateInput(freqInput, element);
+			updateInput(bpmInput, element);
 			updateInput(periodInput, element);
 			updateInput(pitchInput, element);
 			updateInput(sampleTimeInput, element);
