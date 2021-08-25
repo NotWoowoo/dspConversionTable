@@ -47,34 +47,42 @@
 	<br><br>
 	
 	<table>
+	
 		<tr>
 			<td><b>Units</b></td>
 			<td><b>Value</b></td>
 		</tr>
+		
 		</tr>
 			<td>Frequency (hz)</td>
 			<td><input type="text" id="freqInput" value="440" oninput="updateValues(freqInput)"></td>
 		</tr>
+		
+		</tr>
+			<td>Frequency (12TET note)</td>
+			<td><input type="text" id="pitchInput" oninput="updateValues(pitchInput)"></td>
+		</tr>
+		
 		</tr>
 			<td>Frequency (BPM)</td>
 			<td><input type="text" id="bpmInput" oninput="updateValues(bpmInput)"></td>
 		</tr>
+		
 		</tr>
 			<td>Period (ms)</td>
 			<td><input type="text" id="periodInput" oninput="updateValues(periodInput)"></td>
 		</tr>
-		</tr>
-			<td>12-TET Pitch (note)</td>
-			<td><input type="text" id="pitchInput" oninput="updateValues(pitchInput)"></td>
-		</tr>
+		
 		</tr>
 			<td>Wavelength (samples)</td>
 			<td><input type="text" id="sampleTimeInput" oninput="updateValues(sampleTimeInput)"></td>
 		</tr>
+		
 		</tr>
 			<td>Wavelength (cm)</td>
 			<td><input type="text" id="distanceInput" oninput="updateValues(distanceInput)"></td>
 		</tr>
+		
 	</table>
 	
 	<h4>Todo</h4>
@@ -218,7 +226,7 @@
 				break;
 				
 			case distanceInput:
-				return toHz ?  (1/(val/(getSoundSpeed()*100.0)))/1000.0 : (100.0*getSoundSpeed())/(1000.0*val);
+				return toHz ? (100*getSoundSpeed())/val : 100*(getSoundSpeed()*(1/val));
 				break;
 			}
 			
